@@ -43,11 +43,11 @@ estimatePi s = run do
 
 fibonacci :: Int -> Int
 fibonacci 0 = 0
-fibonacci n | n < 3 = 1
+fibonacci n | n <= 2 = 1
             | otherwise = run do
               xr <- new 1
               yr <- new 1
-              for 1 n \_ -> do
+              for 1 (n-1) \_ -> do
                 x <- read xr 
                 y <- read yr
                 _ <- write y xr
