@@ -64,7 +64,9 @@ allTrue = foldl (&&) true
 
 fibTailRec :: Int -> Int
 fibTailRec = go 1 1
-  where go m1 m2 n = if n <= 1 then m1 else go (m1+m2) m1 (n-1)
+  where go m1 m2 n | n == 0 = 0
+                   | n <= 2 = m1 
+                   | otherwise = go (m1+m2) m1 (n-1)
 
 reverse :: forall a. Array a -> Array a
 reverse = foldl (\xs x -> [x] <> xs) []

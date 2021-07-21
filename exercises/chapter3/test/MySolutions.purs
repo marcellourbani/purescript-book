@@ -3,7 +3,7 @@ module Test.MySolutions where
 import Prelude
 
 import Data.AddressBook (Entry, AddressBook, findEntry)
-import Data.List (List, filter, head, nubBy)
+import Data.List (List, filter, head, nubByEq)
 import Data.Maybe (Maybe(..))
 
 -- Note to reader: Add your solutions to this file
@@ -17,5 +17,5 @@ isInBook n s b = case findEntry n s b  of
   _ -> true
 
 removeDuplicates:: List Entry -> List Entry
-removeDuplicates l =  nubBy compareEntry l
+removeDuplicates l = nubByEq compareEntry l
   where compareEntry e1 e2 = e1.firstName == e2.firstName && e1.lastName == e2.lastName
