@@ -48,10 +48,10 @@ origin = { x, y }
 -- origin = { x: 0.0, y: 0.0 }
 
 getCenter :: Shape -> Point
-getCenter (Circle c r) = c
-getCenter (Rectangle c w h) = c
+getCenter (Circle c _) = c
+getCenter (Rectangle c _ _) = c
 getCenter (Line s e) = (s + e) * {x: 0.5, y: 0.5}
-getCenter (Text loc text) = loc
+getCenter (Text loc _) = loc
 
 type Picture = Array Shape
 
@@ -137,6 +137,11 @@ bounds = foldl combine emptyBounds
   combine :: Bounds -> Shape -> Bounds
   combine b shape = union (shapeBounds shape) b
 
+bounds2 :: Picture -> Bounds
+bounds2 = foldl combine emptyBounds
+  where
+  combine :: Bounds -> Shape -> Bounds
+  combine = flip (shapeBounds >>> union)
 {-
 These `instance`s are to enable testing.
 Feel free to ignore these.
