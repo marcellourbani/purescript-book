@@ -20,7 +20,6 @@ main :: Effect Unit
 main =
   runTest do
     test "" success
-    {-  Move this block comment starting point to enable more tests
     suite "Exercises Group - The State Monad" do
       suite "testParens" do
         let 
@@ -44,7 +43,7 @@ main =
             \  So am I\n\
             \    I am even more indented"
         test "should render with indentations" do
-          Assert.equal expectedText
+          Assert.equal expectedText 
             $ render $ cat
               [ line "Here is some indented text:"
               , indent $ cat
@@ -73,6 +72,7 @@ main =
         test "c = 15" do
           Assert.equal expected_15
             $ collatz 15
+    {-  Move this block comment starting point to enable more tests
     suite "Exercises Group - Monad Transformers" do
       suite "parser" do
         let
