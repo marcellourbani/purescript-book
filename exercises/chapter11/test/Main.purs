@@ -72,7 +72,6 @@ main =
         test "c = 15" do
           Assert.equal expected_15
             $ collatz 15
-    {-  Move this block comment starting point to enable more tests
     suite "Exercises Group - Monad Transformers" do
       suite "parser" do
         let
@@ -100,4 +99,33 @@ main =
                   indent' $ do
                     line' "I am even more indented"
 
+    suite "Exercises Group - Monad Comprehensions" do
+      suite "parser" do
+        let
+          runParser p s = unwrap $ runExceptT $ runWriterT $ runStateT p s
+        test "should parse as followed by bs" do
+          Assert.equal (Right (Tuple (Tuple "aaabb" "cde") [
+            "The state is aaabbcde",
+            "The state is aabbcde",
+            "The state is abbcde",
+            "The state is bbcde",
+            "The state is bcde"]))
+            $ runParser asandthenbs "aaabbcde"
+        test "should fail if first is not a" do
+          Assert.equal (Left ["Could not parse"])
+            $ runParser asandthenbs "bfoobar"
+        test "should parse as and bs" do
+          Assert.equal (Right (Tuple (Tuple "babbaa" "cde") [
+            "The state is babbaacde",
+            "The state is abbaacde",
+            "The state is bbaacde",
+            "The state is baacde",
+            "The state is aacde",
+            "The state is acde"]))
+            $ runParser asorbs "babbaacde"
+        test "should fail if first is not a or b" do
+          Assert.equal (Left ["Could not parse","Could not parse"])
+            $ runParser asorbs "foobar"
+
+{-  Move this block comment starting point to enable more tests
 -}
