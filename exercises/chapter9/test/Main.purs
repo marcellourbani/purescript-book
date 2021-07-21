@@ -50,7 +50,6 @@ main =
       files <- readdir outDir
       for_ files \f -> unlink $ Path.concat [ outDir, f ]
     runChapterExamples
-    {-  Move this block comment starting point to enable more tests
     test "concatenateFiles" do
       let
         inFoo = Path.concat [ inDir, "foo.txt" ]
@@ -134,6 +133,7 @@ main =
           expected = [ file ]
         actual <- recurseFiles file
         Assert.equal (Set.fromFoldable expected) $ Set.fromFoldable actual
+    {-  Move this block comment starting point to enable more tests
 
 -}
 runChapterExamples :: TestSuite
