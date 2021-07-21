@@ -2,6 +2,7 @@ module Main where
 
 import Prelude
 
+import Control.Monad.Except (runExceptT)
 import Control.Monad.RWS (RWSResult(..), runRWS)
 import Data.Either (Either(..))
 import Data.Foldable (for_)
@@ -17,6 +18,8 @@ import Node.ReadLine as RL
 import Node.Yargs.Applicative (Y, runY, flag, yarg)
 import Node.Yargs.Setup (usage)
 
+
+
 runGame :: GameEnvironment -> Effect Unit
 runGame env = do
   interface <- RL.createConsoleInterface RL.noCompletion
@@ -25,11 +28,14 @@ runGame env = do
   let
     lineHandler :: GameState -> String -> Effect Unit
     lineHandler currentState input = do
-      case runRWS (game (split (wrap " ") input)) env currentState of
-        RWSResult state _ written -> do
-          for_ written log
-          RL.setLineHandler (lineHandler state) $ interface
-      RL.prompt interface
+      case  runRWS (runExceptT(game (split (wrap " ") input))) env currentState of
+        RWSResult state (Right _) written -> do
+            for_ written log
+            RL.setLineHandler (lineHandler state) $ interface
+            RL.prompt interface
+        RWSResult _ (Left err) _ -> do 
+          log err 
+          RL.close interface
       pure unit
 
   RL.setLineHandler (lineHandler initialGameState) interface
@@ -48,3 +54,5 @@ main = runY (usage "$0 -p <player name>") $ map runGame env
                        false
           <*> flag "d" ["debug"]
                        (Just "Use debug mode")
+          <*> flag "c" ["cheat"]
+                       (Just "Use cheat mode")
