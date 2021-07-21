@@ -2,7 +2,8 @@ module Test.Main where
 
 import Prelude
 import Test.MySolutions
-import Data.Either (Either(..))
+
+import Data.Either (Either(..), fromLeft, fromRight)
 import Data.List (List(..), foldM, (:))
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
@@ -102,7 +103,6 @@ main =
           test "45th Fibonacci number"
             $ Assert.equal 1134903170 (fibonacci 45)
 
--- $ Assert.equal 1836311903 (fibonacci 45)
 {-  Move this block comment starting point to enable more tests
 
 -}

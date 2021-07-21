@@ -1,26 +1,14 @@
-module Example.LSystem where
+module Example.LSystemAngle where
 
 import Prelude
 
 import Data.Array (concatMap, foldM)
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
-import Graphics.Canvas (closePath, fillPath, getCanvasElementById, getContext2D, lineTo, moveTo, setFillStyle, setShadowBlur, setShadowColor, setShadowOffsetX, setShadowOffsetY, setStrokeStyle)
+import Graphics.Canvas (closePath, fillPath, getCanvasElementById, getContext2D, lineTo, moveTo, setFillStyle, setShadowBlur, setShadowColor, setShadowOffsetX, setShadowOffsetY, setStrokeStyle, strokePath)
 import Math as Math
 import Partial.Unsafe (unsafePartial)
 
-lsystem :: forall a m s
-         . Monad m
-         => Array a
-         -> (a -> Array a)
-         -> (s -> a -> m s)
-         -> Int
-         -> s
-         -> m s
-lsystem init prod interpret n state = go init n
-  where
-  go s 0 = foldM interpret state s
-  go s i = go (concatMap prod s) (i - 1)
 
 lsystemProduce :: forall a. 
          Array a
@@ -36,7 +24,12 @@ lsystemProduce init prod n = go init n
 lsystemInterpret :: forall a m s. Monad m => (s -> a -> m s) -> s -> Array a -> m s
 lsystemInterpret interpret state sentence = foldM interpret state sentence
 
-data Letter = L | R | F
+type Angle = Number
+basenum = 8.0 :: Number
+angle = Math.tau / basenum :: Angle 
+scale = 0.8 * 6.0 / basenum :: Number
+
+data Letter = L Angle | R Angle | F
 
 type Sentence = Array Letter
 
@@ -47,12 +40,12 @@ type State =
   }
 
 initial :: Sentence
-initial = [F, R, R, F, R, R, F, R, R]
+initial = [F, R angle, R angle, F, R angle, R angle, F, R angle, R angle, F, R angle, R angle]
 
 productions :: Letter -> Sentence
-productions L = [L]
-productions R = [R]
-productions F = [F, L, F, R, R, F, L, F]
+productions (L n)= [L n]
+productions (R n) = [R n]
+productions F = [F, L angle, F , R angle, R angle, F, L angle, F]
 
 initialState :: State
 initialState = { x: 120.0, y: 200.0, theta: 0.0 }
@@ -64,12 +57,11 @@ main = void $ unsafePartial do
 
   let
     interpret :: State -> Letter -> Effect State
-    interpret state L = pure $ state { theta = state.theta - Math.tau / 6.0 }
-    interpret state R = pure $ state { theta = state.theta + Math.tau / 6.0 }
+    interpret state (L a )= pure $ state { theta = state.theta - a }
+    interpret state (R a )= pure $ state { theta = state.theta + a }
     interpret state F = do
-      let x = state.x + Math.cos state.theta * 1.5
-          y = state.y + Math.sin state.theta * 1.5
-      -- moveTo ctx state.x state.y
+      let x = state.x + Math.cos state.theta * scale
+          y = state.y + Math.sin state.theta * scale
       lineTo ctx x y
       pure { x, y, theta: state.theta }
     
