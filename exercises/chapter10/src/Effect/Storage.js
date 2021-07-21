@@ -5,3 +5,5 @@ exports.setItem = key => value => () =>
 
 exports.getItem = key => () =>
   window.localStorage.getItem(key);
+
+exports.removeItem = key => () => window.localStorage.removeItem(key)

@@ -2,6 +2,7 @@ module Main where
 
 import Prelude
 
+import Control.Bind ((>>=))
 import Data.AddressBook (PhoneNumber, Person, examplePerson)
 import Data.AddressBook.Validation (Errors, validatePerson')
 import Data.Argonaut (Json, decodeJson, encodeJson, jsonParser, printJsonDecodeError, stringify)
@@ -11,10 +12,11 @@ import Data.Either (Either(..))
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Tuple (Tuple(..))
 import Effect (Effect)
-import Effect.Alert (alert)
+import Effect.Alert (alert, confirm)
+import Effect.Class (liftEffect)
 import Effect.Console (log)
 import Effect.Exception (throw)
-import Effect.Storage (getItem, setItem)
+import Effect.Storage (getItem, removeItem, setItem)
 import React.Basic.DOM as D
 import React.Basic.DOM.Events (targetValue)
 import React.Basic.Events (handler, handler_)
@@ -125,6 +127,29 @@ mkAddressBookApp =
                   }
               ]
           }
+
+      resetPerson :: Effect Unit
+      resetPerson = do
+        log "Asking to remove the person record"
+        resp <- confirm "Are you sure you want to reset?"
+        if resp then do
+          removeItem "person"   
+          log "removed"
+        else 
+          log "aborted"
+
+      resetButton :: R.JSX
+      resetButton =
+        D.label
+          { className: "form-group row col-form-label"
+          , children:
+              [ D.button
+                  { className: "btn-primary btn"
+                  , onClick: handler_ resetPerson
+                  , children: [ D.text "Reset" ]
+                  }
+              ]
+          }                   
     pure
       $ D.div
           { className: "container"
@@ -152,7 +177,7 @@ mkAddressBookApp =
                           ]
                       }
                   ]
-                <> [ saveButton ]
+                <> [ saveButton,resetButton ]
           }
 
 processItem :: Json -> Either String Person

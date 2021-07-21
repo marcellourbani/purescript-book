@@ -5,3 +5,4 @@ dist
 /index.html
 /book
 tmp
+.parcel-cache
