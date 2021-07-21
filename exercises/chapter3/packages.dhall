@@ -1,5 +1,5 @@
 let upstream =
-      https://github.com/purescript/package-sets/releases/download/psc-0.14.0-20210406/packages.dhall sha256:7b6af643c2f61d936878f58b613fade6f3cb39f2b4a310f6095784c7b5285879
+      https://github.com/purescript/package-sets/releases/download/psc-0.13.8-20210226/packages.dhall sha256:7e973070e323137f27e12af93bc2c2f600d53ce4ae73bb51f34eb7d7ce0a43ea
 
 let overrides =
       { test-unit =
