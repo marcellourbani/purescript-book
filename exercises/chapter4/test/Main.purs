@@ -17,7 +17,6 @@ main :: Effect Unit
 main =
   runTest do
     runChapterExamples
-    {-  Move this block comment starting point to enable more tests
     suite "Exercise Group - Recursion" do
       suite "Exercise - isEven" do
         test "0 is even" do
@@ -190,8 +189,6 @@ main =
         testls "works for root" ["/etc/hosts", "/home/user/code/js/test.js"] root
         testls "works for a directory with one file" ["/etc/hosts"] oneFileDir
         testls "works for an empty directory" [] emptyDir
-
--}
 runChapterExamples :: TestSuite
 runChapterExamples =
   suite "Chapter Examples" do
