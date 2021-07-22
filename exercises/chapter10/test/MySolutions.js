@@ -36,3 +36,5 @@ exports.quadraticRootsSetImpl = q => {
     if (d < 0) return [{ real: p1, imag: p2 }, { real: p1, imag: -p2 }]
     return [{ real: p1 + p2, imag: 0 }, { real: p1 - p2, imag: 0 }]
 }
+
+exports.toMaybeImpl = just => nothing => x => typeof x === 'undefined' ? nothing : just(x)

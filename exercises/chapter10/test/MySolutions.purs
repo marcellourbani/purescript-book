@@ -12,10 +12,11 @@ import Data.Eq.Generic (genericEq)
 import Data.Function.Uncurried (Fn3)
 import Data.Generic.Rep (class Generic)
 import Data.Map (Map)
+import Data.Maybe (Maybe(..))
 import Data.Pair (Pair(..))
 import Data.Set (Set)
 import Data.Show.Generic (genericShow)
-import Test.Examples (Complex, Quadratic)
+import Test.Examples (Complex, Quadratic, Undefined, isUndefined)
 
 -- Note to reader: Add your solutions to this file
 
@@ -93,3 +94,8 @@ instance showIos :: Show IntOrString where
 
 instance eqIos :: Eq IntOrString where
   eq a b = genericEq a b
+
+foreign import toMaybeImpl :: forall a. (a -> Maybe a) -> Maybe a -> Undefined a -> Maybe a 
+
+toMaybe :: forall a. Undefined a -> Maybe a
+toMaybe = toMaybeImpl Just Nothing
