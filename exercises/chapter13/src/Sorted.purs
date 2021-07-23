@@ -3,6 +3,7 @@ module Sorted where
 import Prelude
 
 import Data.Array (sort)
+import Test.QuickCheck (class Coarbitrary, coarbitrary)
 import Test.QuickCheck.Arbitrary (class Arbitrary, arbitrary)
 
 newtype Sorted a = Sorted (Array a)
@@ -15,3 +16,6 @@ instance showSorted :: Show a => Show (Sorted a) where
 
 instance arbSorted :: (Arbitrary a, Ord a) => Arbitrary (Sorted a) where
   arbitrary = map (Sorted <<< sort) arbitrary
+
+instance coarbitrarySorted ::(Coarbitrary a,Ord a) => Coarbitrary (Sorted (Array a)) where
+    coarbitrary (Sorted x) = coarbitrary <<< sort $ x

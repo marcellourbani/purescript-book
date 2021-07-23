@@ -2,21 +2,23 @@ module Test.Main where
 
 import Prelude
 
-import Control.Monad.List.Trans (foldl)
-import Data.Array (fold, sort, sortBy, (..))
-import Data.Array.NonEmpty (NonEmptyArray(..), range, singleton)
+import Data.Array (fold, sort, sortBy)
+import Data.Array.NonEmpty (cons', range, singleton)
 import Data.Char (fromCharCode, toCharCode)
-import Data.Foldable (foldr)
+import Data.Foldable (foldMap, foldr, sum)
 import Data.Function (on)
 import Data.List (List(..), fromFoldable)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe.First (First(..))
+import Data.Show.Generic (genericShow)
+import Data.Generic.Rep
 import Data.Traversable (traverse)
 import Effect (Effect)
-import Merge (mergeWith, mergePoly, merge)
+import Merge (merge, mergePoly, mergeWith)
 import Sorted (sorted)
-import Test.QuickCheck (quickCheck, (<?>))
-import Test.QuickCheck.Arbitrary (arbitrary, class Arbitrary)
-import Test.QuickCheck.Gen (Gen, arrayOf, elements)
+import Test.QuickCheck (class Coarbitrary, Result(..), quickCheck, (<?>))
+import Test.QuickCheck.Arbitrary (class Arbitrary, arbitrary, coarbitrary)
+import Test.QuickCheck.Gen (Gen, arrayOf, elements, oneOf)
 import Tree (Tree, anywhere, insert, member, toArray)
 
 isSorted :: forall a. (Ord a) => Array a -> Boolean
@@ -48,6 +50,82 @@ instance arbitraryAz :: Arbitrary AzString where
     let chars = fromMaybe (singleton 'a') $ traverse fromCharCode $ range (toCharCode 'a') (toCharCode 'z')
         createAz = map show >>> fold >>> AzString
     in createAz <$> (arrayOf $ elements chars)
+
+
+newtype Byte = Byte Int
+
+intToByte :: Int -> Byte
+intToByte n | n >= 0 = Byte (n `mod` 256)
+            | otherwise = intToByte (-n)
+
+
+instance arbitraryByte :: Arbitrary Byte where
+  arbitrary = map intToByte arbitrary
+
+instance coarbitraryByte :: Coarbitrary Byte where
+  coarbitrary (Byte a) = coarbitrary <<< intToByte $ a
+
+checkAssociative :: (Int -> Boolean) -> Array Int -> Array Int -> Array Int -> Result
+checkAssociative f xs ys zs =
+  let p1 =  mergeWith (intToBool f) xs ys
+      p2 =  mergeWith f ys zs
+      pre = mergeWith f p1 zs
+      post = mergeWith f xs p2
+  in pre == post <?> "Associativity failed for\n" <> show xs <> "\n" <> show ys <> "\n" <> show zs
+
+data OneTwoThree a = One a | Two a a | Three a a a
+
+
+instance arbitrary123 ::Arbitrary a => Arbitrary (OneTwoThree a) where
+  arbitrary = oneOf $ cons' 
+    (map One arbitrary) [
+    map Two arbitrary <*> arbitrary
+    ,map Three arbitrary <*> arbitrary <*> arbitrary]
+
+instance coarbitrary123 ::Coarbitrary a => Coarbitrary (OneTwoThree a) where
+  coarbitrary (One a) = coarbitrary a
+  coarbitrary (Two a b) = coarbitrary  a <<< coarbitrary b
+  coarbitrary (Three a b c) = coarbitrary  a <<< coarbitrary b <<< coarbitrary c
+  
+all:: List Result -> Boolean
+all = foldr (&&) true <<< map toBool where
+  toBool Success = true
+  toBool _ = false
+
+squashResults :: List Result -> Result
+squashResults l = e where
+  toErr Success = Nothing
+  toErr x = Just x
+  errors = toErr <$> l
+  e = case foldMap First errors of
+      First Nothing -> Success
+      First (Just err) -> err
+
+derive instance generic123 ::Generic (OneTwoThree a) _
+
+instance show123 ::Show a => Show (OneTwoThree a) where
+  show = genericShow
+
+sum123 :: OneTwoThree Int -> OneTwoThree Int -> OneTwoThree Int
+sum123 x y = One $ toInt x + toInt y where
+  toInt (One a) = a
+  toInt (Two a b) =  a + b
+  toInt (Three a b c) =  a + b + c
+
+
+instance one23Eq :: Eq a => Eq (OneTwoThree a) where
+  eq (One a) (One b) = a == b
+  eq (Two a b ) (Two c d) = a == c && b == d
+  eq (Three a b c) (Three a1 b1 c1) = a == a1 && b == b1 && c == c1
+  eq _ _ = false
+
+type One23f = OneTwoThree Int -> OneTwoThree Int -> OneTwoThree Int
+
+assoc123 :: One23f -> OneTwoThree Int -> OneTwoThree Int -> OneTwoThree Int -> Result
+assoc123 f x y z = pre == post <?> "Associativity failed\n" <> show x <> "\n" <> show y <> "\n" <> show z where
+  pre = f  (f x y) z
+  post = f x (f y z) 
+  
 
 main :: Effect Unit
 main = do
