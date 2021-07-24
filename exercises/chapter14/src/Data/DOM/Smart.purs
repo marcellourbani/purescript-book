@@ -3,6 +3,7 @@ module Data.DOM.Smart
   , Attribute
   , Content
   , AttributeKey
+  , SimpleAttributeKey
 
   , a
   , p
@@ -15,8 +16,10 @@ module Data.DOM.Smart
   , height
 
   , attribute, (:=)
+  , simpleAttribute
   , text
   , elem
+  , disabled
 
   , render
   ) where
@@ -36,10 +39,11 @@ data Content
   = TextContent String
   | ElementContent Element
 
-newtype Attribute = Attribute
+data Attribute = Attribute
   { key          :: String
   , value        :: String
   }
+  | SimpleAttribute String
 
 element :: String -> Array Attribute -> Maybe (Array Content) -> Element
 element name attribs content = Element
@@ -55,12 +59,16 @@ elem :: Element -> Content
 elem = ElementContent
 
 newtype AttributeKey = AttributeKey String
+newtype SimpleAttributeKey = SimpleAttributeKey String
 
 attribute :: AttributeKey -> String -> Attribute
 attribute (AttributeKey key) value = Attribute
   { key: key
   , value: value
   }
+
+simpleAttribute :: SimpleAttributeKey -> Attribute
+simpleAttribute (SimpleAttributeKey key) = SimpleAttribute key
 
 infix 4 attribute as :=
 
@@ -88,6 +96,9 @@ width = AttributeKey "width"
 height :: AttributeKey
 height = AttributeKey "height"
 
+disabled :: SimpleAttributeKey
+disabled = SimpleAttributeKey "disabled"
+
 render :: Element -> String
 render (Element e) =
     "<" <> e.name <>
@@ -96,6 +107,7 @@ render (Element e) =
   where
     renderAttribute :: Attribute -> String
     renderAttribute (Attribute x) = x.key <> "=\"" <> x.value <> "\""
+    renderAttribute (SimpleAttribute x) = x
 
     renderContent :: Maybe (Array Content) -> String
     renderContent Nothing = " />"

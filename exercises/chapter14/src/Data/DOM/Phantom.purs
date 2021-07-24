@@ -3,7 +3,10 @@ module Data.DOM.Phantom
   , Attribute
   , Content
   , AttributeKey
+  , Percent(..)
+  , True
   , class IsValue
+  , class Dimension
   , toValue
 
   , a
@@ -15,6 +18,8 @@ module Data.DOM.Phantom
   , src
   , width
   , height
+  , checked
+  , disabled
 
   , attribute, (:=)
   , text
@@ -38,12 +43,16 @@ data Content
   = TextContent String
   | ElementContent Element
 
-newtype Attribute = Attribute
+data Attribute = Attribute
   { key          :: String
   , value        :: String
   }
+  | SimpleAttribute String
+data True
+data False
 
-newtype AttributeKey a = AttributeKey String
+newtype AttributeKey :: forall k1 k2. k1 -> k2 -> Type
+newtype AttributeKey a b = AttributeKey String
 
 element :: String -> Array Attribute -> Maybe (Array Content) -> Element
 element name attribs content = Element
@@ -61,13 +70,25 @@ elem = ElementContent
 class IsValue a where
   toValue :: a -> String
 
+class Dimension :: forall k. k -> Constraint
+class Dimension a
+
+instance intDimension :: Dimension Int
+
 instance stringIsValue :: IsValue String where
   toValue = identity
 
 instance intIsValue :: IsValue Int where
   toValue = show
 
-attribute :: forall a. IsValue a => AttributeKey a -> a -> Attribute
+newtype Percent = Percent Int
+
+instance percDimension :: Dimension Percent
+
+instance percIsValue :: IsValue Percent where
+  toValue (Percent x) = show x <> "%"
+
+attribute :: forall a. IsValue a => AttributeKey a True -> a -> Attribute
 attribute (AttributeKey key) value = Attribute
   { key: key
   , value: toValue value
@@ -84,20 +105,26 @@ p attribs content = element "p" attribs (Just content)
 img :: Array Attribute -> Element
 img attribs = element "img" attribs Nothing
 
-href :: AttributeKey String
+href :: AttributeKey String True
 href = AttributeKey "href"
 
-_class :: AttributeKey String
+_class :: AttributeKey String True
 _class = AttributeKey "class"
 
-src :: AttributeKey String
+src :: AttributeKey String True
 src = AttributeKey "src"
 
-width :: AttributeKey Int
+width ::forall d. Dimension d => AttributeKey d True
 width = AttributeKey "width"
 
-height :: AttributeKey Int
+height ::forall d. Dimension d => AttributeKey d True
 height = AttributeKey "height"
+
+disabled :: Attribute 
+disabled = SimpleAttribute "disabled"
+
+checked :: Attribute
+checked = SimpleAttribute "checked"
 
 render :: Element -> String
 render (Element e) =
@@ -107,6 +134,7 @@ render (Element e) =
   where
     renderAttribute :: Attribute -> String
     renderAttribute (Attribute x) = x.key <> "=\"" <> x.value <> "\""
+    renderAttribute (SimpleAttribute x) = x
 
     renderContent :: Maybe (Array Content) -> String
     renderContent Nothing = " />"
